@@ -12,6 +12,7 @@
 		6A35513B22EAA8CF007CD0E0 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6A35513922EAA8CF007CD0E0 /* Main.storyboard */; };
 		6A35513D22EAA8D1007CD0E0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6A35513C22EAA8D1007CD0E0 /* Assets.xcassets */; };
 		6A35514022EAA8D1007CD0E0 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6A35513E22EAA8D1007CD0E0 /* LaunchScreen.storyboard */; };
+		7DA0112622ECD57E00CDE5E6 /* BluetoothClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DA0112522ECD57E00CDE5E6 /* BluetoothClient.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -22,6 +23,7 @@
 		6A35513C22EAA8D1007CD0E0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		6A35513F22EAA8D1007CD0E0 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		6A35514122EAA8D1007CD0E0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		7DA0112522ECD57E00CDE5E6 /* BluetoothClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothClient.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -54,6 +56,7 @@
 		6A35513422EAA8CF007CD0E0 /* App1 */ = {
 			isa = PBXGroup;
 			children = (
+				7DA0112422ECD53C00CDE5E6 /* IOClients */,
 				6A35513522EAA8CF007CD0E0 /* AppDelegate.swift */,
 				6A35513722EAA8CF007CD0E0 /* ViewController.swift */,
 				6A35513922EAA8CF007CD0E0 /* Main.storyboard */,
@@ -62,6 +65,14 @@
 				6A35514122EAA8D1007CD0E0 /* Info.plist */,
 			);
 			path = App1;
+			sourceTree = "<group>";
+		};
+		7DA0112422ECD53C00CDE5E6 /* IOClients */ = {
+			isa = PBXGroup;
+			children = (
+				7DA0112522ECD57E00CDE5E6 /* BluetoothClient.swift */,
+			);
+			path = IOClients;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -137,6 +148,7 @@
 			files = (
 				6A35513822EAA8CF007CD0E0 /* ViewController.swift in Sources */,
 				6A35513622EAA8CF007CD0E0 /* AppDelegate.swift in Sources */,
+				7DA0112622ECD57E00CDE5E6 /* BluetoothClient.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -213,7 +225,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 12.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.2;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -268,7 +280,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 12.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.2;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
