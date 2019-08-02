@@ -10,9 +10,11 @@ import Foundation
 
 // JSON format for API
 struct EventDataJSONAPI: Codable {
-    let deviceId: String
-    let eventId: String
+    let deviceId: Int
+    let deviceGuid: String
+    let eventId: String?
     let timestamp: String
+    let eventType: Int
 }
 // JSON format for bluetooth
 struct EventDataJSONBT: Codable {

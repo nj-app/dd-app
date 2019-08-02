@@ -12,12 +12,13 @@ enum HTTPMethods: String {
     case get = "GET"
     case post = "POST"
     case put = "PUT"
-    case patch = "PATCH"
     case delete = "DELETE"
 }
 
 class APIClient {
+    // Shared singleton instance of APIClient
     static var shared = APIClient()
+
     private let baseURL = "https://iotstripes-ddapi.azurewebsites.net/api"
     private var sensorDataURL: String {
         return "\(baseURL)/SensorData"
@@ -25,8 +26,6 @@ class APIClient {
     private var deviceEventURL: String {
         return "\(baseURL)/DeviceEvents"
     }
-
-    private init() {}
 
     func fetchEvents(userID: String, deviceID: String, completion: ((_ events: Array<Event>, _ success: Bool) -> Void)?) {
         self.request(url: deviceEventURL, method: HTTPMethods.get, data: nil) {result, success in
@@ -37,7 +36,7 @@ class APIClient {
         }
     }
 
-    func saveEvents(events: Array<Event>, userID: String, deviceID: String, completion: ((_ success: Bool) -> Void)?) {
+    func saveEvents(events: Array<Event>, userID: String, device: Device, completion: ((_ success: Bool) -> Void)?) {
 
         // Generate concurrent API calls for all events.
         let dispatchGroup = DispatchGroup()
@@ -45,7 +44,7 @@ class APIClient {
 
         for event in events {
             dispatchGroup.enter() // start async block.
-            let eventObj = EventDataJSONAPI(deviceId: event.deviceId, eventId: event.eventId, timestamp: event.timestamp)
+            let eventObj = EventDataJSONAPI(deviceId: device.dbId, deviceGuid: device.deviceId, eventId: event.eventId, timestamp: event.timestamp, eventType: event.eventType.rawValue)
             let encoder = JSONEncoder()
             let eventJSON:Data? = try? encoder.encode(eventObj)
 
@@ -159,4 +158,7 @@ class APIClient {
         })
         task.resume()
     }
+
+    // Enforce singleton pattern with private init. - There can be only ONE! ;)
+    private init() {}
 }

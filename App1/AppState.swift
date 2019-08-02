@@ -44,28 +44,11 @@ class AppState {
 
     var account: Account?
     private var fileName:String = "dd-app-state.json"
+    private var writeInProgress = false
+    private var readInProgress = false
 
-    // Save state to file system.
-    func saveState() {
-        if let account = account, let accountData = accountToJSON(account), let fileURL = getFileURL() {
-            do {
-                try accountData.write(to: fileURL)
-            } catch {
-                print("Error occurred while persisting account JSON file")
-            }
-        }
-    }
-
-    // Reads the state from filesystem.
-    func readState() {
-        if let fileURL = getFileURL() {
-            if let jsonData = try? Data(contentsOf: fileURL),
-               let account = accountFromJSON(jsonData) {
-                self.account = account
-            } else {
-                print("Error occurred while reading account JSON file")
-            }
-        }
+    func save() {
+        saveState()
     }
 
     func restore() {
@@ -98,6 +81,47 @@ class AppState {
             return dir.appendingPathComponent(fileName)
         }
         return nil
+    }
+
+    // Save state to file system.
+    private func saveState() {
+        if writeInProgress || readInProgress {
+            print("State is already being read or updated.")
+            return
+        }
+        writeInProgress = true
+        // Move JSON parsing and writing to background thread.
+        DispatchQueue.global(qos: .background).async {
+            if let account = self.account, let accountData = self.accountToJSON(account), let fileURL = self.getFileURL() {
+                do {
+                    try accountData.write(to: fileURL)
+                } catch {
+                    print("Error occurred while persisting account JSON file")
+                }
+            }
+            self.writeInProgress = false
+        }
+    }
+
+    // Reads the state from filesystem.
+    private func readState() {
+        if writeInProgress || readInProgress {
+            print("State is already being read or updated.")
+            return
+        }
+        readInProgress = true
+        // Move JSON reading and parsing to background thread.
+        DispatchQueue.global(qos: .background).async {
+            if let fileURL = self.getFileURL() {
+                if let jsonData = try? Data(contentsOf: fileURL),
+                    let account = self.accountFromJSON(jsonData) {
+                    self.account = account
+                } else {
+                    print("Error occurred while reading account JSON file")
+                }
+            }
+            self.readInProgress = false
+        }
     }
 
     private func accountToJSON(_ account: Account) -> Data? {
@@ -150,6 +174,7 @@ class AppState {
         return FileManager.default.fileExists(atPath: fileURL.path)
     }
 
+    // Generates a demo account (for iot-stripes demo)
     private func generateDemoAccount() -> Account {
         let demoUser = User(dbId: 5, userId: "ead003f4-83c1-483d-b40b-76574303f96e", name: "Demo User", email: "iot-stripes-demo@cmu.edu")
         let demoDevice = Device(dbId: 3, deviceId: "26130984-4221-4008-8402-01008040a050", name: "El Baby", status: .connected)
