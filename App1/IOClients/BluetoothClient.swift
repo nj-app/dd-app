@@ -43,8 +43,8 @@ class BluetoothClient: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate 
     static let shared = BluetoothClient()
 
     var centralManager: CBCentralManager?
-    var ddDevices: Dictionary<String, DDDevice> = [:]
-    var ddPairedPeripheralIDs: Set<String> = [demoPeripheralID]
+    var btDevices: Dictionary<String, BluetoothDevice> = [:]
+    var btPairedPeripheralIDs: Set<String> = [demoPeripheralID]
     var delegate: BluetoothClientDelegate?
 
     // private because there can be only ONE! ;)
@@ -76,7 +76,7 @@ class BluetoothClient: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate 
 
     func pairDevice(peripheralUUID: String, appID: String) {
         print("Pairing device with UUID")
-        self.ddPairedPeripheralIDs.insert(peripheralUUID)
+        self.btPairedPeripheralIDs.insert(peripheralUUID)
     }
 
     func syncDeviceData(peripheralUUID: String) {
@@ -91,8 +91,8 @@ class BluetoothClient: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate 
         }
     }
 
-    func getDeviceByUUID(peripheralUUID: String) -> DDDevice? {
-        return self.ddDevices.first(where: { $0.key == peripheralUUID })?.value
+    func getDeviceByUUID(peripheralUUID: String) -> BluetoothDevice? {
+        return self.btDevices.first(where: { $0.key == peripheralUUID })?.value
     }
 
     func parseDataResponse(data: Data) -> SensorDataJSONBTResponse? {
@@ -123,13 +123,13 @@ class BluetoothClient: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate 
 
         let pUUID = peripheral.identifier.uuidString
 
-        if ddDevices[pUUID] == nil {
-            ddDevices[pUUID] = DDDevice(peripheral)
+        if btDevices[pUUID] == nil {
+            btDevices[pUUID] = BluetoothDevice(peripheral)
         }
 
         // If the device is currently disconnected, and already paired, connect it.
         if peripheral.state == .disconnected &&
-            ddPairedPeripheralIDs.contains(pUUID) {
+            btPairedPeripheralIDs.contains(pUUID) {
             centralManager?.connect(peripheral)
         }
     }
@@ -169,8 +169,8 @@ class BluetoothClient: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate 
         // Peripheral Disconnected
         let pUUID = peripheral.identifier.uuidString
 
-        if ddDevices[pUUID] != nil {
-            ddDevices.removeValue(forKey: pUUID)
+        if btDevices[pUUID] != nil {
+            btDevices.removeValue(forKey: pUUID)
             print("Peripheral disconnected.", pUUID)
         }
     }
@@ -192,7 +192,7 @@ class BluetoothClient: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate 
         }
 
         let pUUID = peripheral.identifier.uuidString
-        let device: DDDevice? = ddDevices.first(where: { $0.key == pUUID })?.value
+        let device: BluetoothDevice? = btDevices.first(where: { $0.key == pUUID })?.value
 
         for service in peripheral.services! {
             if let device = device {
@@ -211,7 +211,7 @@ class BluetoothClient: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate 
 
         guard let characteristics = service.characteristics else { return }
         let pUUID = peripheral.identifier.uuidString
-        let device: DDDevice? = ddDevices.first(where: { $0.key == pUUID })?.value
+        let device: BluetoothDevice? = btDevices.first(where: { $0.key == pUUID })?.value
 
         for characteristic in characteristics {
             if let device = device {
@@ -297,14 +297,14 @@ enum CharacteristicStatus {
     case notReady
 }
 
-class DDDevice {
+class BluetoothDevice {
     var peripheral: CBPeripheral?
     var syncDataInProgress: Bool = false
     var syncDataItems: Array<SensorData> = []
     var syncEventsInProgress: Bool = false
     var syncEventsItems: Array<Event> = []
     var deviceId: String {
-        return self.peripheral?.identifier.uuidString ?? ""
+        return peripheral!.identifier.uuidString
     }
 
     var isReady: Bool {
