@@ -18,25 +18,25 @@ enum HTTPMethods: String {
 
 class APIClient: NSObject {
     static var shared = APIClient()
-    private let baseURL = "https://iotstripes-ddapi.azurewebsites.net"
-    private let deviceEventPath = "/api/device-events"
-    private let sensorDataPath = "/api/sensor-data"
+    private let baseURL = "https://iotstripes-ddapi.azurewebsites.net/api"
+    private let deviceEventPath = "/DeviceEvents"
+    private let sensorDataPath = "/SensorData"
 
     private override init() {
         super.init()
     }
 
-    func fetchEvents(userID: String, deviceID: String, completion: ((_ events: Array<EventData>, _ success: Bool) -> Void)?) {
+    func fetchEvents(userID: String, deviceID: String, completion: ((_ events: Array<Event>, _ success: Bool) -> Void)?) {
         let eventURL = baseURL + deviceEventPath
         self.request(url: eventURL, method: HTTPMethods.get, data: nil) {result, success in
             print("Events fetched: ", result ?? "")
-            if let completion = completion, let result = result as? Array<EventData> {
+            if let completion = completion, let result = result as? Array<Event> {
                 completion(result, false)
             }
         }
     }
 
-    func saveEvents(events: Array<EventData>, userID: String, deviceID: String, completion: ((_ success: Bool) -> Void)?) {
+    func saveEvents(events: Array<Event>, userID: String, deviceID: String, completion: ((_ success: Bool) -> Void)?) {
 
         // Generate concurrent API calls for all events.
         let dispatchGroup = DispatchGroup()
@@ -45,21 +45,19 @@ class APIClient: NSObject {
 
         for event in events {
             dispatchGroup.enter() // start async block.
-            let eventData: Dictionary<String, Any> = [
-                "event_id": event.event_id,
-                "event_type": event.event_type,
-                "device_id": deviceID,
-                "user_id": userID,
-                "timestamp": event.timestamp
-            ]
+            let eventObj = EventDataJSONAPI(deviceId: event.deviceId, eventId: event.eventId, timestamp: event.timestamp)
+            let encoder = JSONEncoder()
+            let eventJSON:Data? = try? encoder.encode(eventObj)
 
-            self.request(url: eventURL, method: HTTPMethods.post, data: eventData) {response, success in
-                if !success {
-                    print("Error saving event: ", response ?? "")
-                }
-                DispatchQueue.main.async {
-                    statuses.append(success)
-                    dispatchGroup.leave() // resolve async block.
+            if let eventJSON = eventJSON {
+                self.request(url: eventURL, method: HTTPMethods.post, data: eventJSON) {response, success in
+                    if !success {
+                        print("Error saving event: ", response ?? "")
+                    }
+                    DispatchQueue.main.async {
+                        statuses.append(success)
+                        dispatchGroup.leave() // resolve async block.
+                    }
                 }
             }
         }
@@ -81,16 +79,11 @@ class APIClient: NSObject {
 
         for data in sensorDataItems {
             dispatchGroup.enter() // start async block.
-            let sensorData: Dictionary<String, Any> = [
-                "data_id": data.data_id,
-                "device_id": deviceID,
-                "user_id": userID,
-                "timestamp": data.timestamp,
-                "humidity": data.humidity,
-                "temperature": data.temperature
-            ]
+            let sensorData = SensorDataJSONAPI(dataId: data.dataId, timestamp: data.timestamp, temperature: data.temperature, humidity: data.humidity)
+            let encoder = JSONEncoder()
+            let jsonData:Data? = try? encoder.encode(sensorData)
 
-            self.request(url: dataURL, method: HTTPMethods.post, data: sensorData) {response, success in
+            self.request(url: dataURL, method: HTTPMethods.post, data: jsonData) {response, success in
                 if !success {
                     print("Error saving sensor data: ", response ?? "")
                 }
@@ -110,7 +103,7 @@ class APIClient: NSObject {
         }
     }
 
-    private func request(url: String, method: HTTPMethods, data: Dictionary<String, Any>?, completion: ((_ result: Any?, _ success: Bool) -> Void)?) {
+    private func request(url: String, method: HTTPMethods, data: Data?, completion: ((_ result: Any?, _ success: Bool) -> Void)?) {
 
         guard let url = URL(string: url) else { return }
         var request = URLRequest(url: url)
