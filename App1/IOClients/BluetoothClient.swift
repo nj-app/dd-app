@@ -55,6 +55,13 @@ class BluetoothClient: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate 
             queue: DispatchQueue(label: "com.dd-app.centralQueue", attributes: .concurrent)
         )
     }
+    
+    func isDeviceConnected(peripheralUUID: String) -> Bool {
+        if let device: BluetoothDevice  = self.getDeviceByUUID(peripheralUUID: peripheralUUID) {
+            return device.isReady
+        }
+        return false
+    }
 
     func startScanning() {
         guard let centralManager = centralManager else { return }

@@ -37,10 +37,15 @@ struct AccountJSON: Codable {
     var devices: Array<DeviceJSON>
 }
 
+protocol AppStateDelegate {
+    func didRecordEvent(event: Event)
+}
+
 class AppState {
     // Create a shared sington instance.
     static var shared = AppState()
 
+    var delegate: AppStateDelegate?
     var account: Account?
     var accountReady: Bool {
         return account != nil
