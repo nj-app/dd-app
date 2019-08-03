@@ -39,6 +39,7 @@ class Event {
     let deviceId: String
     let timestamp: String
     let eventType: EventType
+    var isSaved = false
 
     init(eventId: String, deviceId: String, timestamp: String, eventType: EventType) {
         self.eventId = eventId

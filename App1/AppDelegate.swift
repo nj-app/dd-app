@@ -9,14 +9,16 @@
 import UIKit
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate, BluetoothClientDelegate {
 
     var window: UIWindow?
 
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        // Restore AppState from filesystem.
         AppState.shared.restore()
+        // Setup the bluetooth client's delegate
+        BluetoothClient.shared.delegate = self
         return true
     }
 
@@ -41,6 +43,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func applicationWillTerminate(_ application: UIApplication) {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
         AppState.shared.save()
+    }
+
+    // MARK: BluetoothClientDelegate
+
+    func didReceiveEvents(_ events: Array<Event>) {
+        AppState.shared.addEvents(events)
+    }
+
+    func didSyncSensorData(_ data: Array<SensorData>) {
+        // TODO: Handle receiving of sensor data.  We may decide to save these in the back-end.
     }
 
 }

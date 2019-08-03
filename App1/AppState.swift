@@ -39,6 +39,10 @@ struct AccountJSON: Codable {
     var devices: Array<DeviceJSON>
 }
 
+class AppStateDelegate {
+
+}
+
 class AppState {
     static var shared = AppState()
 
@@ -46,6 +50,25 @@ class AppState {
     private var fileName:String = "dd-app-state.json"
     private var writeInProgress = false
     private var readInProgress = false
+
+    func addEvents(_ events: Array<Event>, autoSave: Bool = true) {
+        // Add the events to the app state.
+        for e in events {
+            addEvent(e, autoSave: false)
+        }
+        if autoSave {
+            save()
+        }
+    }
+
+    func addEvent(_ event: Event, autoSave: Bool = true) {
+        if let device = account?.devices.first(where: { $0.deviceId == event.deviceId }) {
+            device.events.append(event)
+        }
+        if autoSave {
+            save()
+        }
+    }
 
     func save() {
         saveState()
