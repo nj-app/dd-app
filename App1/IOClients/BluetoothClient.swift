@@ -30,32 +30,9 @@ let supportedCharacteristics = [
     btEventNotifyCharacteristicId
 ]
 
-struct EventData: Codable {
-    var event_id: String
-    var timestamp: Float
-    var event_type: Int
-}
-
-struct EventDataResponse: Codable {
-    var event: EventData
-    var remaining: Int
-}
-
-struct SensorData: Codable {
-    var data_id: String
-    var timestamp: Float
-    var humidity: Float
-    var temperature: Float
-}
-
-struct SensorDataResponse: Codable {
-    var data: SensorData
-    var remaining: Int
-}
-
 protocol BluetoothClientDelegate {
     func didSyncSensorData(_ data: Array<SensorData>)
-    func didReceiveEvents(_ data: Array<EventData>)
+    func didReceiveEvents(_ data: Array<Event>)
 }
 
 // ID of demo device (this will be pre-paired for the demo.)
@@ -66,8 +43,8 @@ class BluetoothClient: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate 
     static let shared = BluetoothClient()
 
     var centralManager: CBCentralManager?
-    var ddDevices: Dictionary<String, DDDevice> = [:]
-    var ddPairedPeripheralIDs: Set<String> = [demoPeripheralID]
+    var btDevices: Dictionary<String, BluetoothDevice> = [:]
+    var btPairedPeripheralIDs: Set<String> = [demoPeripheralID]
     var delegate: BluetoothClientDelegate?
 
     // private because there can be only ONE! ;)
@@ -77,6 +54,13 @@ class BluetoothClient: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate 
             delegate: self,
             queue: DispatchQueue(label: "com.dd-app.centralQueue", attributes: .concurrent)
         )
+    }
+    
+    func isDeviceConnected(peripheralUUID: String) -> Bool {
+        if let device: BluetoothDevice  = self.getDeviceByUUID(peripheralUUID: peripheralUUID) {
+            return device.isReady
+        }
+        return false
     }
 
     func startScanning() {
@@ -99,7 +83,7 @@ class BluetoothClient: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate 
 
     func pairDevice(peripheralUUID: String, appID: String) {
         print("Pairing device with UUID")
-        self.ddPairedPeripheralIDs.insert(peripheralUUID)
+        self.btPairedPeripheralIDs.insert(peripheralUUID)
     }
 
     func syncDeviceData(peripheralUUID: String) {
@@ -114,24 +98,24 @@ class BluetoothClient: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate 
         }
     }
 
-    func getDeviceByUUID(peripheralUUID: String) -> DDDevice? {
-        return self.ddDevices.first(where: { $0.key == peripheralUUID })?.value
+    func getDeviceByUUID(peripheralUUID: String) -> BluetoothDevice? {
+        return self.btDevices.first(where: { $0.key == peripheralUUID })?.value
     }
 
-    func parseDataResponse(data: Data) -> SensorDataResponse? {
-        var result: SensorDataResponse? = nil
+    func parseDataResponse(data: Data) -> SensorDataJSONBTResponse? {
+        var result: SensorDataJSONBTResponse? = nil
         do {
-            result = try JSONDecoder().decode(SensorDataResponse.self, from: data)
+            result = try JSONDecoder().decode(SensorDataJSONBTResponse.self, from: data)
         } catch let err {
             print("Error parsing sensor data response", err)
         }
         return result
     }
 
-    func parseEventResponse(data: Data) -> EventDataResponse? {
-        var result: EventDataResponse? = nil
+    func parseEventResponse(data: Data) -> EventDataJSONBTResponse? {
+        var result: EventDataJSONBTResponse? = nil
         do {
-            result = try JSONDecoder().decode(EventDataResponse.self, from: data)
+            result = try JSONDecoder().decode(EventDataJSONBTResponse.self, from: data)
         } catch let err {
             print("Error parsing event data response", err)
         }
@@ -146,13 +130,13 @@ class BluetoothClient: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate 
 
         let pUUID = peripheral.identifier.uuidString
 
-        if ddDevices[pUUID] == nil {
-            ddDevices[pUUID] = DDDevice(peripheral)
+        if btDevices[pUUID] == nil {
+            btDevices[pUUID] = BluetoothDevice(peripheral)
         }
 
         // If the device is currently disconnected, and already paired, connect it.
         if peripheral.state == .disconnected &&
-            ddPairedPeripheralIDs.contains(pUUID) {
+            btPairedPeripheralIDs.contains(pUUID) {
             centralManager?.connect(peripheral)
         }
     }
@@ -192,8 +176,8 @@ class BluetoothClient: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate 
         // Peripheral Disconnected
         let pUUID = peripheral.identifier.uuidString
 
-        if ddDevices[pUUID] != nil {
-            ddDevices.removeValue(forKey: pUUID)
+        if btDevices[pUUID] != nil {
+            btDevices.removeValue(forKey: pUUID)
             print("Peripheral disconnected.", pUUID)
         }
     }
@@ -215,7 +199,7 @@ class BluetoothClient: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate 
         }
 
         let pUUID = peripheral.identifier.uuidString
-        let device: DDDevice? = ddDevices.first(where: { $0.key == pUUID })?.value
+        let device: BluetoothDevice? = btDevices.first(where: { $0.key == pUUID })?.value
 
         for service in peripheral.services! {
             if let device = device {
@@ -234,7 +218,7 @@ class BluetoothClient: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate 
 
         guard let characteristics = service.characteristics else { return }
         let pUUID = peripheral.identifier.uuidString
-        let device: DDDevice? = ddDevices.first(where: { $0.key == pUUID })?.value
+        let device: BluetoothDevice? = btDevices.first(where: { $0.key == pUUID })?.value
 
         for characteristic in characteristics {
             if let device = device {
@@ -270,6 +254,9 @@ class BluetoothClient: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate 
 
             if let result = parseEventResponse(data: value), let device = getDeviceByUUID(peripheralUUID: peripheral.identifier.uuidString) {
 
+                let event = Event(eventId: result.event.event_id, deviceId: device.deviceId, timestamp: result.event.timestamp, eventType: .one)
+                device.syncEventsItems.append(event)
+
                 if result.remaining > 0 {
                     print("Reading next event...")
                     peripheral.readValue(for: characteristic)
@@ -288,8 +275,9 @@ class BluetoothClient: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate 
 
             if let result = parseDataResponse(data: value), let device = getDeviceByUUID(peripheralUUID: peripheral.identifier.uuidString) {
 
-                device.syncDataItems.append(result.data)
+                let sensorData = SensorData(dataId: result.data.data_id, deviceId: device.deviceId, timestamp: result.data.timestamp, humidity: result.data.humidity, temperature: result.data.temperature)
 
+                device.syncDataItems.append(sensorData)
                 if result.remaining > 0 {
                     print("Reading next block of sync data...")
                     peripheral.readValue(for: characteristic)
@@ -316,12 +304,15 @@ enum CharacteristicStatus {
     case notReady
 }
 
-class DDDevice {
+class BluetoothDevice {
     var peripheral: CBPeripheral?
     var syncDataInProgress: Bool = false
     var syncDataItems: Array<SensorData> = []
     var syncEventsInProgress: Bool = false
-    var syncEventsItems: Array<EventData> = []
+    var syncEventsItems: Array<Event> = []
+    var deviceId: String {
+        return peripheral!.identifier.uuidString
+    }
 
     var isReady: Bool {
         let servicesReady = serviceStatuses.reduce(into: true) { result, item in
