@@ -13,12 +13,12 @@ import Foundation
 // a JSON file in the filesystem just for demo purposes.
 // CoreData should be used in the long-run to persist data.
 
+// JSON codables for the AppState (JSON file saved to filesystem)
 struct EventJSON: Codable {
     var uuid: String
     var timestamp: String
     var eventType: Int
 }
-
 struct DeviceJSON: Codable {
     var id: Int
     var uuid: String
@@ -26,24 +26,19 @@ struct DeviceJSON: Codable {
     var status: Int
     var events: Array<EventJSON>
 }
-
 struct UserJSON: Codable {
     var id: Int
     var uuid: String
     var name: String
     var email: String
 }
-
 struct AccountJSON: Codable {
     var user: UserJSON
     var devices: Array<DeviceJSON>
 }
 
-class AppStateDelegate {
-
-}
-
 class AppState {
+    // Create a shared sington instance.
     static var shared = AppState()
 
     var account: Account?
