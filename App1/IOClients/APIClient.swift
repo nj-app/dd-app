@@ -36,29 +36,28 @@ class APIClient {
         }
     }
 
-    func saveEvents(events: Array<Event>, userID: String, device: Device, completion: ((_ success: Bool) -> Void)?) {
+    func saveEvents(events: Array<Event>, device: Device, completion: ((_ success: Bool) -> Void)?) {
         // Generate concurrent API calls for all events.
         let dispatchGroup = DispatchGroup()
         var statuses: Array<Bool> = []
 
         for event in events {
-            dispatchGroup.enter() // start async block.
+            // Start async block.
+            dispatchGroup.enter()
             // format JSON body for event request
             let eventObj = EventDataJSONAPI(deviceId: device.dbId, deviceGuid: device.deviceId, eventId: event.eventId, timestamp: event.timestamp, eventType: event.eventType.rawValue)
-            let encoder = JSONEncoder()
-            let eventJSON:Data? = try? encoder.encode(eventObj)
+            let eventJSON:Data? = try? JSONEncoder().encode(eventObj)
 
-            if let eventJSON = eventJSON {
-                // Create POST request to save event
-                self.request(url: deviceEventURL, method: HTTPMethods.post, data: eventJSON) {response, success in
-                    if !success {
-                        print("Error saving event: ", response ?? "")
-                    }
-                    DispatchQueue.main.async {
-                        // Resolve async request & save status
-                        statuses.append(success)
-                        dispatchGroup.leave() // resolve async block.
-                    }
+            // Create POST request to save event
+            self.request(url: deviceEventURL, method: HTTPMethods.post, data: eventJSON) {response, success in
+                if !success {
+                    print("Error saving event: ", response ?? "")
+                }
+                DispatchQueue.main.async {
+                    // Resolve async request & save status
+                    statuses.append(success)
+                    // Resolve async block.
+                    dispatchGroup.leave()
                 }
             }
         }
@@ -71,17 +70,17 @@ class APIClient {
         }
     }
 
-    func saveSensorData(sensorDataItems: Array<SensorData>, userID: String, deviceID: String, completion: ((_ success: Bool) -> Void)?) {
+    func saveSensorData(sensorDataItems: Array<SensorData>, deviceID: String, completion: ((_ success: Bool) -> Void)?) {
         // Generate concurrent API calls for all sensor data..
         let dispatchGroup = DispatchGroup()
         var statuses: Array<Bool> = []
 
         for data in sensorDataItems {
-            dispatchGroup.enter() // start async block.
+            // Start async block.
+            dispatchGroup.enter()
             // Format JSON body for sensordata request
             let sensorData = SensorDataJSONAPI(dataId: data.dataId, timestamp: data.timestamp, temperature: data.temperature, humidity: data.humidity)
-            let encoder = JSONEncoder()
-            let jsonData:Data? = try? encoder.encode(sensorData)
+            let jsonData:Data? = try? JSONEncoder().encode(sensorData)
 
             // Create POST request to save sensor data.
             self.request(url: sensorDataURL, method: HTTPMethods.post, data: jsonData) {response, success in
@@ -91,7 +90,8 @@ class APIClient {
                 // Resolve async request and save status.
                 DispatchQueue.main.async {
                     statuses.append(success)
-                    dispatchGroup.leave() // resolve async block.
+                    // Resolve async block.
+                    dispatchGroup.leave()
                 }
             }
         }
@@ -113,18 +113,11 @@ class APIClient {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
 
-        do {
-            if let data = data {
-                request.httpBody = try JSONSerialization.data(withJSONObject: data, options: .prettyPrinted)
-            }
-        } catch let error {
-            print(error.localizedDescription)
-            if let completion = completion {
-                completion(nil, false)
-            }
+        if let data = data {
+            request.httpBody = data
         }
 
-        let task = URLSession.shared.dataTask(with: request as URLRequest, completionHandler: { data, response, error in
+        let task = URLSession.shared.dataTask(with: request, completionHandler: { data, response, error in
             guard error == nil else {
                 print("Request error: ", error?.localizedDescription ?? "")
                 if let completion = completion {

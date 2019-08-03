@@ -42,6 +42,10 @@ class AppState {
     static var shared = AppState()
 
     var account: Account?
+    var accountReady: Bool {
+        return account != nil
+    }
+
     private var fileName:String = "dd-app-state.json"
     private var writeInProgress = false
     private var readInProgress = false

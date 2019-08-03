@@ -18,7 +18,7 @@ struct SensorDataJSONAPI: Codable {
 // JSON format for bluetooth
 struct SensorDataJSONBT: Codable {
     var data_id: String
-    var timestamp: Float
+    var timestamp: String
     var humidity: Float
     var temperature: Float
 }

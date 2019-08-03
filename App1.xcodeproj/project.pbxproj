@@ -20,6 +20,7 @@
 		7DBC57C822F4011F0052FFF3 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DBC57C722F4011F0052FFF3 /* User.swift */; };
 		7DBC57CA22F404F50052FFF3 /* Account.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DBC57C922F404F50052FFF3 /* Account.swift */; };
 		7DBC57CC22F40B4B0052FFF3 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DBC57CB22F40B4B0052FFF3 /* AppState.swift */; };
+		7DBC57D022F529900052FFF3 /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DBC57CF22F529900052FFF3 /* Utils.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -38,6 +39,7 @@
 		7DBC57C722F4011F0052FFF3 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		7DBC57C922F404F50052FFF3 /* Account.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Account.swift; sourceTree = "<group>"; };
 		7DBC57CB22F40B4B0052FFF3 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		7DBC57CF22F529900052FFF3 /* Utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -79,6 +81,7 @@
 				6A35513E22EAA8D1007CD0E0 /* LaunchScreen.storyboard */,
 				6A35514122EAA8D1007CD0E0 /* Info.plist */,
 				7DBC57CB22F40B4B0052FFF3 /* AppState.swift */,
+				7DBC57CF22F529900052FFF3 /* Utils.swift */,
 			);
 			path = App1;
 			sourceTree = "<group>";
@@ -182,6 +185,7 @@
 				7D4C1AEE22F20C1600CF900F /* APIClient.swift in Sources */,
 				7DBC57C822F4011F0052FFF3 /* User.swift in Sources */,
 				7DBC57CA22F404F50052FFF3 /* Account.swift in Sources */,
+				7DBC57D022F529900052FFF3 /* Utils.swift in Sources */,
 				7D10F20922F3C3C000CCA54F /* Event.swift in Sources */,
 				7DBC57C622F3FCDD0052FFF3 /* Device.swift in Sources */,
 				7D10F20B22F3C96E00CCA54F /* SensorData.swift in Sources */,

@@ -247,7 +247,7 @@ class BluetoothClient: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate 
 
             if let result = parseEventResponse(data: value), let device = getDeviceByUUID(peripheralUUID: peripheral.identifier.uuidString) {
 
-                let event = Event(eventId: result.event.event_id, deviceId: device.deviceId, timestamp: String(result.event.timestamp), eventType: .one)
+                let event = Event(eventId: result.event.event_id, deviceId: device.deviceId, timestamp: result.event.timestamp, eventType: .one)
                 device.syncEventsItems.append(event)
 
                 if result.remaining > 0 {
@@ -268,7 +268,7 @@ class BluetoothClient: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate 
 
             if let result = parseDataResponse(data: value), let device = getDeviceByUUID(peripheralUUID: peripheral.identifier.uuidString) {
 
-                let sensorData = SensorData(dataId: result.data.data_id, deviceId: device.deviceId, timestamp: String(result.data.timestamp), humidity: result.data.humidity, temperature: result.data.temperature)
+                let sensorData = SensorData(dataId: result.data.data_id, deviceId: device.deviceId, timestamp: result.data.timestamp, humidity: result.data.humidity, temperature: result.data.temperature)
 
                 device.syncDataItems.append(sensorData)
                 if result.remaining > 0 {

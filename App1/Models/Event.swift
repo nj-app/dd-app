@@ -19,7 +19,7 @@ struct EventDataJSONAPI: Codable {
 // JSON format for bluetooth
 struct EventDataJSONBT: Codable {
     let event_id: String
-    let timestamp: Float
+    let timestamp: String
     let event_type: Int
 }
 struct EventDataJSONBTResponse: Codable {
